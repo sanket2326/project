@@ -7,25 +7,30 @@ demo
 watch the youtube vedio 
 #!/bin/bash
 
-# Set your Windows shared folder details
-windows_share="//WINDOWS_HOST/SharedFolder"
-mount_point="/mnt/shared"
+path="/home/sanket/note/s3"
+num_to_keep=2
 
-# Set your Windows username and password
-windows_username="your_windows_username"
-windows_password="your_windows_password"
+#file availabe or not available
+status=$(find "$path" -maxdepth 1 -type d -printf '%T@ %p\n' | sort -n -r)
 
-# Create the mount point if it doesn't exist
-if [ ! -d "$mount_point" ]; then
-    sudo mkdir -p "$mount_point"
+# Execute the find, sort, awk, cut, and xargs commands to get the list of directories to delete
+dirs_to_delete=$(find "$path" -mindepth 1 -maxdepth 1 -type d -printf '%T@ %p\n' | sort -n -r | awk -v N="$num_to_keep" 'NR > N' | cut -d ' ' -f 2-)
+
+
+if [ -n "$status" ]; then
+        echo "New modified directories are available:"
+        echo "$status"
+else
+        echo "No new directories are available."
 fi
 
-# Mount the Windows shared folder
-sudo mount -t cifs -o username="$windows_username",password="$windows_password",vers=3.0 "$windows_share" "$mount_point"
+# Check if there are directories to delete
+if [ -n "$dirs_to_delete" ]; then
+    echo "The following directories will be deleted:"
+    echo "$dirs_to_delete"
+    echo "$dirs_to_delete" | xargs rm -r
 
-# Check if the mount was successful
-if [ $? -eq 0 ]; then
-    echo "Windows shared folder mounted successfully at $mount_point"
+
 else
-    echo "Failed to mount Windows shared folder"
+    echo "No directories to delete."
 fi
