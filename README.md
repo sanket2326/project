@@ -1,4 +1,34 @@
 # project
+function Compare-ZipFiles {
+    param (
+        [string]$ZipFile1,
+        [string]$ZipFile2
+    )
+
+    $zip1 = [System.IO.Compression.ZipFile]::OpenRead($ZipFile1)
+    $zip2 = [System.IO.Compression.ZipFile]::OpenRead($ZipFile2)
+
+    $zip1Entries = $zip1.Entries | Select-Object -ExpandProperty FullName
+    $zip2Entries = $zip2.Entries | Select-Object -ExpandProperty FullName
+
+    $zip1.Close()
+    $zip2.Close()
+
+    $diff = Compare-Object $zip1Entries $zip2Entries
+
+    if ($diff.Count -eq 0) {
+        Write-Host "The contents of the zip files are identical."
+    } else {
+        Write-Host "Differences found between the zip files:"
+        $diff | ForEach-Object {
+            Write-Host $_.InputObject
+        }
+    }
+}
+
+Compare-ZipFiles -ZipFile1 "file1.zip" -ZipFile2 "file2.zip"
+
+
 git session
 
 demo
