@@ -1,33 +1,46 @@
-# project
-function Compare-ZipFiles {
-    param (
-        [string]$ZipFile1,
-        [string]$ZipFile2
+@echo off
+
+setlocal enabledelayedexpansion
+
+:: Specify the search string
+set search_string=apple
+
+:: Get the current date in a specific format (YYYYMMDD)
+for /f "tokens=2-4 delims=/ " %%a in ('date /t') do (
+    set "current_date=%%c%%b%%a"
+)
+
+:: Define the directory name based on the current date
+set directory_name=!current_date!_GA
+
+:: Specify the path to the directory where the files are located
+set base_directory=C:\path\to\base\directory
+
+:: Combine the base directory path and the constructed directory name
+set directory_path=!base_directory!\!directory_name!
+
+:: Define the file name you want to search within
+set file_name=yourfile.txt
+
+:: Combine the directory path and file name
+set file_path=!directory_path!\!file_name!
+
+:: Use the `find` command to search for the string in the file
+find /i "%search_string%" "!file_path!" | find /c /v ""
+
+:: Check the %errorlevel% to determine if the string was found
+if %errorlevel%==0 (
+    :: Count the number of lines containing the search string
+    for /f %%A in ('findstr /i /c:"%search_string%" /c:"%search_string%"^<"!file_path!" ^| find /c /v ""') do (
+        set count=%%A
     )
+    
+    echo String "%search_string%" found in %count% line(s) in the file !file_name! in directory !directory_name!.
+) else (
+    echo String "%search_string%" not found in the file !file_name! in directory !directory_name!.
+)
 
-    $zip1 = [System.IO.Compression.ZipFile]::OpenRead($ZipFile1)
-    $zip2 = [System.IO.Compression.ZipFile]::OpenRead($ZipFile2)
-
-    $zip1Entries = $zip1.Entries | Select-Object -ExpandProperty FullName
-    $zip2Entries = $zip2.Entries | Select-Object -ExpandProperty FullName
-
-    $zip1.Close()
-    $zip2.Close()
-
-    $diff = Compare-Object $zip1Entries $zip2Entries
-
-    if ($diff.Count -eq 0) {
-        Write-Host "The contents of the zip files are identical."
-    } else {
-        Write-Host "Differences found between the zip files:"
-        $diff | ForEach-Object {
-            Write-Host $_.InputObject
-        }
-    }
-}
-
-Compare-ZipFiles -ZipFile1 "file1.zip" -ZipFile2 "file2.zip"
-
+endlocal
 
 git session
 
