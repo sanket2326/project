@@ -18,6 +18,11 @@ if not "%mostRecentDir%"=="" (
 
 endlocal
 
+for /f "delims=" %i in ('dir /ad /b /o-d') do set recent=%i& goto :done
+:done
+echo Most recent directory: %recent%
+
+
 git session
 
 demo
