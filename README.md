@@ -1,22 +1,30 @@
 @echo off
 setlocal enabledelayedexpansion
 
-set "targetDir=C:\Your\Root\Folder"
-set "dirName=YourDirectoryName"
-set "mostRecentDir="
+set "sourceDir1=C:\Path\To\Directory1"
+set "sourceDir2=C:\Path\To\Directory2"
 
-for /f "tokens=*" %%d in ('dir /ad /b /o:d "%targetDir%\%dirName%" 2^>nul') do (
-    set "mostRecentDir=%%d"
+:: Create lists of items in both directories
+dir /b /s /a-d "%sourceDir1%" > "%temp%\dir1.txt"
+dir /b /s /a-d "%sourceDir2%" > "%temp%\dir2.txt"
+
+:: Check for orphaned files or directories in sourceDir1
+echo Orphaned items in %sourceDir1%:
+for /f %%i in ('findstr /v /g:"%temp%\dir2.txt" "%temp%\dir1.txt"') do (
+    echo %%i
 )
 
-if not "%mostRecentDir%"=="" (
-    echo Most recent directory with the name "%dirName%" is:
-    echo %mostRecentDir%
-) else (
-    echo Directory "%dirName%" not found or no subdirectories found.
+:: Check for orphaned files or directories in sourceDir2
+echo Orphaned items in %sourceDir2%:
+for /f %%i in ('findstr /v /g:"%temp%\dir1.txt" "%temp%\dir2.txt"') do (
+    echo %%i
 )
 
-endlocal
+:: Clean up temporary files
+del "%temp%\dir1.txt" "%temp%\dir2.txt"
+
+pause
+
 
 for /f "delims=" %i in ('dir /ad /b /o-d') do set recent=%i& goto :done
 :done
